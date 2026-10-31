@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>スマッピーへ</title>
+<style>
+body{font-family:sans-serif;margin:24px 16px;background:#fff;color:#222;text-align:center}
+button{font-size:22px;padding:16px 28px;border:0;border-radius:10px;background:#6a1b9a;color:#fff}
+p{font-size:16px}
+</style>
+</head>
+<body>
+<p id="msg">スマッピーのQR画面を開いています…</p>
+<form id="f" method="POST" action="https://qrcode.jra.go.jp/pw_983_i.cgi"></form>
+<button id="go" style="display:none" onclick="document.getElementById('f').submit()">QRを出す</button>
+<script>
+// 競馬の通知(C:/keiba-yosou/model/smappy_link.py)のリンクから開く中継ページ。
+// URL の # 以降に JRA スマッピーの番号と買い目が入っていて、それを JRA に送るだけ(# 以降はこのページの置き場所には送られない)。
+// 形: #t=uh.qrcodeid.u.acst&b=買い目1.買い目2...
+(function () {
+  var q = {};
+  location.hash.replace(/^#/, '').split('&').forEach(function (kv) {
+    var i = kv.indexOf('=');
+    if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1));
+  });
+  var t = (q.t || '').split('.'), b = (q.b || '').split('.').filter(Boolean);
+  if (t.length !== 4 || !b.length) {
+    document.getElementById('msg').textContent = 'リンクの中身が足りません(買い目なし)';
+    return;
+  }
+  var d = {uh: t[0], qrcodeid: t[1], g: '982', u: t[2], acst: t[3]};
+  for (var i = 0; i < 50; i++) d[('0' + (i + 1)).slice(-2)] = b[i] || '0';
+  var f = document.getElementById('f');
+  Object.keys(d).forEach(function (k) {
+    var x = document.createElement('input');
+    x.type = 'hidden'; x.name = k; x.value = d[k];
+    f.appendChild(x);
+  });
+  document.getElementById('go').style.display = 'inline-block';
+  f.submit();
+})();
+</script>
+</body>
+</html>
